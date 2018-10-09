@@ -98,8 +98,10 @@ function test_command() {
 
 # Called directly by Airflow.
 function modify_values_command() {
-    # TODO: Merge these changes into istio/istio master and stop using this task
-    gsutil -q cp gs://istio-release-pipeline-data/release-tools/test-version/data/release/modify_values.sh .
+    if [ ! -f modify_values.sh ]; then
+       # if modify_values.sh is not in this branch for some reason, use version from gcs
+       gsutil -q cp gs://istio-release-pipeline-data/release-tools/test-version/data/release/modify_values.sh .
+    fi
     chmod u+x modify_values.sh
 
     echo "PIPELINE TYPE is $PIPELINE_TYPE"
@@ -142,8 +144,6 @@ function release_push_github_docker_template() {
     # shellcheck disable=SC2034
     DOCKER_DST="$DOCKER_HUB"
     # shellcheck disable=SC2034
-    GCR_DST="${GCR_RELEASE_DEST}"
-    # shellcheck disable=SC2034
     GCS_DST="${GCS_MONTHLY_RELEASE_PATH}"
     GCS_PATH="${GCS_BUILD_PATH}"
     #GCS_RELEASE_TOOLS_PATH
@@ -153,7 +153,7 @@ function release_push_github_docker_template() {
     # shellcheck disable=SC2034
     REPO="${GITHUB_REPO}"
     VER_STRING="${VERSION}"
-    create_subs_file "BRANCH" "DOCKER_DST" "GCR_DST" "GCS_DST" "GCS_PATH" "GCS_RELEASE_TOOLS_PATH" "GCS_SECRET" "GCS_SOURCE" "ORG" "REPO" "VER_STRING"
+    create_subs_file "BRANCH" "DOCKER_DST" "GCS_DST" "GCS_PATH" "GCS_RELEASE_TOOLS_PATH" "GCS_SECRET" "GCS_SOURCE" "ORG" "REPO" "VER_STRING"
     cat "${SUBS_FILE}"
 
     run_build "cloud_publish.template.json" \
